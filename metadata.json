@@ -1,0 +1,5 @@
+{
+  "name": "观影记录",
+  "description": "一款智能观影记录工具，支持实时保存、数据可视化统计，并利用 AI 自动填充电影详情。",
+  "requestFramePermissions": []
+}
