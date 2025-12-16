@@ -5,7 +5,7 @@ import { MovieCard } from './components/MovieCard';
 import { MovieForm } from './components/MovieForm';
 import { Button } from './components/ui/Button';
 import { Stats } from './components/Stats';
-import { Plus, Search, Save, Film, Download, FileJson, FileSpreadsheet, ChevronDown, Calendar, CheckSquare, Trash2, X, Upload, ArrowUpDown, Globe, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, Save, Film, Download, FileJson, FileSpreadsheet, ChevronDown, Calendar, CheckSquare, Trash2, X, Upload, ArrowUpDown, Globe, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 
 // Helper for fuzzy search (Levenshtein Distance)
 const levenshtein = (a: string, b: string): number => {
@@ -82,6 +82,7 @@ export default function App() {
   const [sortConfig, setSortConfig] = useState<{ field: string, direction: 'asc' | 'desc' }>({ field: 'addedAt', direction: 'desc' });
   const [isSaving, setIsSaving] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -582,10 +583,51 @@ export default function App() {
                 <CheckSquare size={20} className={isSelectionMode ? 'text-indigo-400' : ''} />
             </button>
 
+            {/* Mobile Menu Trigger */}
+            <button 
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="sm:hidden text-slate-400 hover:text-white"
+            >
+                <Menu size={24} />
+            </button>
+
             {!isSelectionMode && (
                 <Button onClick={() => { setEditingMovie(null); setIsFormOpen(true); }} size="sm" className="shadow-lg shadow-indigo-500/20 hidden sm:flex">
                 <Plus size={16} className="mr-1" /> 新增记录
                 </Button>
+            )}
+
+            {/* Mobile Menu Dropdown */}
+            {showMobileMenu && (
+                <>
+                    <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => setShowMobileMenu(false)}></div>
+                    <div className="absolute top-16 right-4 w-56 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                        <div className="p-3 border-b border-slate-700/50 bg-slate-900/50">
+                            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">数据管理</div>
+                        </div>
+                        
+                        <button 
+                            onClick={() => { handleImportClick(); setShowMobileMenu(false); }}
+                            className="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors flex items-center gap-3"
+                        >
+                            <Upload size={18} className="text-indigo-400" /> 导入数据
+                        </button>
+                        
+                        <button 
+                            onClick={() => { handleExport('json'); setShowMobileMenu(false); }}
+                            className="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors flex items-center gap-3 border-t border-slate-700/50"
+                        >
+                            <FileJson size={18} className="text-emerald-400" /> 导出 JSON
+                        </button>
+                        
+                        <button 
+                            onClick={() => { handleExport('csv'); setShowMobileMenu(false); }}
+                            className="w-full px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors flex items-center gap-3 border-t border-slate-700/50"
+                        >
+                            <FileSpreadsheet size={18} className="text-green-400" /> 导出 CSV
+                        </button>
+                    </div>
+                </>
             )}
           </div>
         </div>
