@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Movie, MovieStatus } from './types';
 import { MovieCard } from './components/MovieCard';
@@ -500,6 +501,15 @@ export default function App() {
         className="hidden" 
       />
 
+      {/* Floating Action Button for Mobile */}
+      <button 
+        onClick={() => { setEditingMovie(null); setIsFormOpen(true); }}
+        className="fixed bottom-6 right-6 z-40 bg-indigo-600 text-white rounded-full p-4 shadow-2xl shadow-indigo-500/40 sm:hidden hover:scale-110 active:scale-95 transition-all"
+        title="添加记录"
+      >
+        <Plus size={28} />
+      </button>
+
       {/* Navbar */}
       <nav className="sticky top-0 z-30 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -564,12 +574,16 @@ export default function App() {
                 </div>
             </div>
 
-            <Button onClick={() => toggleSelectionMode()} variant={isSelectionMode ? "primary" : "secondary"} size="sm" className="shadow-lg">
+            <Button onClick={() => toggleSelectionMode()} variant={isSelectionMode ? "primary" : "secondary"} size="sm" className="hidden sm:flex shadow-lg">
                 <CheckSquare size={16} className="mr-1" /> {isSelectionMode ? '退出管理' : '批量管理'}
             </Button>
+            
+            <button onClick={() => toggleSelectionMode()} className="sm:hidden text-slate-400 hover:text-white">
+                <CheckSquare size={20} className={isSelectionMode ? 'text-indigo-400' : ''} />
+            </button>
 
             {!isSelectionMode && (
-                <Button onClick={() => { setEditingMovie(null); setIsFormOpen(true); }} size="sm" className="shadow-lg shadow-indigo-500/20">
+                <Button onClick={() => { setEditingMovie(null); setIsFormOpen(true); }} size="sm" className="shadow-lg shadow-indigo-500/20 hidden sm:flex">
                 <Plus size={16} className="mr-1" /> 新增记录
                 </Button>
             )}
@@ -578,15 +592,15 @@ export default function App() {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         
         <Stats movies={movies} />
 
-        {/* Filters & Search */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8 sticky top-20 z-20 bg-slate-900/95 p-2 -mx-2 rounded-xl border border-slate-800/50 backdrop-blur-sm shadow-xl shadow-black/20">
+        {/* Filters & Search - Mobile Optimized */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6 sticky top-16 z-20 bg-slate-900/95 p-3 -mx-4 sm:-mx-2 sm:rounded-xl border-y sm:border border-slate-800/50 backdrop-blur-sm shadow-xl shadow-black/20">
            {isSelectionMode ? (
                /* Bulk Action Toolbar */
-               <div className="flex-1 flex items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+               <div className="flex-1 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300 px-1">
                     <div className="flex items-center gap-2">
                         <input 
                             type="checkbox" 
@@ -595,15 +609,15 @@ export default function App() {
                             onChange={handleSelectAll}
                             className="w-5 h-5 rounded border-slate-600 bg-slate-800 text-indigo-600 focus:ring-indigo-500"
                         />
-                        <label htmlFor="select-all" className="text-sm font-medium cursor-pointer select-none">
-                            全选当前 ({sortedMovies.length})
+                        <label htmlFor="select-all" className="text-sm font-medium cursor-pointer select-none whitespace-nowrap">
+                            全选 ({sortedMovies.length})
                         </label>
                     </div>
                     
-                    <div className="h-6 w-px bg-slate-700"></div>
+                    <div className="h-6 w-px bg-slate-700 mx-1"></div>
                     
-                    <div className="text-sm text-slate-400">
-                        已选择 <span className="text-white font-bold">{selectedIds.size}</span> 项
+                    <div className="text-sm text-slate-400 whitespace-nowrap">
+                        选中 <span className="text-white font-bold">{selectedIds.size}</span>
                     </div>
 
                     <div className="flex-grow"></div>
@@ -613,22 +627,23 @@ export default function App() {
                         variant="danger" 
                         disabled={selectedIds.size === 0}
                         onClick={handleBulkDelete}
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 px-3"
                     >
-                        <Trash2 size={16} /> 删除选中
+                        <Trash2 size={16} /> <span className="hidden sm:inline">删除选中</span>
                     </Button>
                     <Button 
                         size="sm" 
                         variant="ghost" 
                         onClick={toggleSelectionMode}
+                        className="px-2"
                     >
-                        <X size={16} /> 取消
+                        <X size={16} />
                     </Button>
                </div>
            ) : (
                /* Standard Filter Toolbar */
                <>
-                <div className="flex-1 flex gap-2">
+                <div className="flex-1 flex flex-col sm:flex-row gap-2">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                         <input 
@@ -640,79 +655,82 @@ export default function App() {
                         />
                     </div>
                     
-                    {/* Sort Dropdown */}
-                    <div className="relative min-w-[130px]">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
-                            <ArrowUpDown size={16} />
+                    {/* Filter Scroll Container for Mobile */}
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+                        {/* Sort Dropdown */}
+                        <div className="relative min-w-[130px] shrink-0">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+                                <ArrowUpDown size={14} />
+                            </div>
+                            <select
+                                value={`${sortConfig.field}-${sortConfig.direction}`}
+                                onChange={(e) => {
+                                    const [field, direction] = e.target.value.split('-');
+                                    setSortConfig({ field, direction: direction as 'asc' | 'desc' });
+                                }}
+                                className="w-full appearance-none bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-7 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-300 hover:text-white cursor-pointer transition-colors"
+                            >
+                                <option value="addedAt-desc">最近添加</option>
+                                <option value="addedAt-asc">最早添加</option>
+                                <option value="rating-desc">评分最高</option>
+                                <option value="rating-asc">评分最低</option>
+                                <option value="year-desc">年份最新</option>
+                                <option value="year-asc">年份最旧</option>
+                                <option value="title-asc">标题 (A-Z)</option>
+                            </select>
+                            <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                         </div>
-                        <select
-                            value={`${sortConfig.field}-${sortConfig.direction}`}
-                            onChange={(e) => {
-                                const [field, direction] = e.target.value.split('-');
-                                setSortConfig({ field, direction: direction as 'asc' | 'desc' });
-                            }}
-                            className="w-full appearance-none bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-8 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-300 hover:text-white cursor-pointer transition-colors"
-                        >
-                            <option value="addedAt-desc">最近添加</option>
-                            <option value="addedAt-asc">最早添加</option>
-                            <option value="rating-desc">评分最高</option>
-                            <option value="rating-asc">评分最低</option>
-                            <option value="year-desc">年份最新</option>
-                            <option value="year-asc">年份最旧</option>
-                            <option value="title-asc">标题 (A-Z)</option>
-                        </select>
-                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-                    </div>
 
-                    {/* Country Filter - NEW */}
-                    <div className="relative min-w-[120px]">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
-                            <Globe size={16} />
+                        {/* Country Filter */}
+                        <div className="relative min-w-[110px] shrink-0">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+                                <Globe size={14} />
+                            </div>
+                            <select
+                                value={filterCountry}
+                                onChange={(e) => setFilterCountry(e.target.value)}
+                                className="w-full appearance-none bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-7 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-300 hover:text-white cursor-pointer transition-colors"
+                            >
+                                <option value="all">所有地区</option>
+                                {countryOptions.map(c => (
+                                    <option key={c} value={c}>{c}</option>
+                                ))}
+                            </select>
+                            <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                         </div>
-                        <select
-                            value={filterCountry}
-                            onChange={(e) => setFilterCountry(e.target.value)}
-                            className="w-full appearance-none bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-8 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-300 hover:text-white cursor-pointer transition-colors"
-                        >
-                            <option value="all">所有地区</option>
-                            {countryOptions.map(c => (
-                                <option key={c} value={c}>{c}</option>
-                            ))}
-                        </select>
-                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-                    </div>
 
-                    <div className="relative min-w-[120px]">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
-                            <Calendar size={16} />
+                        <div className="relative min-w-[110px] shrink-0">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+                                <Calendar size={14} />
+                            </div>
+                            <select
+                                value={dateFilter}
+                                onChange={(e) => setDateFilter(e.target.value)}
+                                className="w-full appearance-none bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-7 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-300 hover:text-white cursor-pointer transition-colors"
+                            >
+                                <optgroup label="快捷筛选">
+                                    <option value="all">全部时间</option>
+                                    <option value="7d">最近 7 天</option>
+                                    <option value="30d">最近 30 天</option>
+                                </optgroup>
+                                {dateOptions.years.length > 0 && (
+                                    <optgroup label="按年份">
+                                        {dateOptions.years.map(y => (
+                                            <option key={y} value={`year_${y}`}>{y} 年</option>
+                                        ))}
+                                    </optgroup>
+                                )}
+                                {dateOptions.months.length > 0 && (
+                                    <optgroup label="按月份">
+                                        {dateOptions.months.map(m => {
+                                            const [y, mon] = m.split('-');
+                                            return <option key={m} value={`month_${m}`}>{y}年 {mon}月</option>;
+                                        })}
+                                    </optgroup>
+                                )}
+                            </select>
+                            <ChevronDown size={14} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                         </div>
-                        <select
-                            value={dateFilter}
-                            onChange={(e) => setDateFilter(e.target.value)}
-                            className="w-full appearance-none bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-8 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none text-slate-300 hover:text-white cursor-pointer transition-colors"
-                        >
-                            <optgroup label="快捷筛选">
-                                <option value="all">全部时间</option>
-                                <option value="7d">最近 7 天</option>
-                                <option value="30d">最近 30 天</option>
-                            </optgroup>
-                            {dateOptions.years.length > 0 && (
-                                <optgroup label="按年份">
-                                    {dateOptions.years.map(y => (
-                                        <option key={y} value={`year_${y}`}>{y} 年</option>
-                                    ))}
-                                </optgroup>
-                            )}
-                            {dateOptions.months.length > 0 && (
-                                <optgroup label="按月份">
-                                    {dateOptions.months.map(m => {
-                                        const [y, mon] = m.split('-');
-                                        return <option key={m} value={`month_${m}`}>{y}年 {mon}月</option>;
-                                    })}
-                                </optgroup>
-                            )}
-                        </select>
-                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                     </div>
                 </div>
                 
@@ -721,7 +739,7 @@ export default function App() {
                     <button
                         key={status}
                         onClick={() => setFilterStatus(status)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors border ${
+                        className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-colors border ${
                         filterStatus === status 
                             ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-500/20' 
                             : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white'
@@ -753,7 +771,7 @@ export default function App() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {currentDisplayedMovies.map(movie => (
                 <MovieCard 
                     key={movie.id} 
@@ -770,16 +788,16 @@ export default function App() {
             {/* Pagination Controls */}
             {sortedMovies.length > 0 && (
                 <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4 bg-slate-800/50 p-4 rounded-xl border border-slate-800">
-                    <div className="text-sm text-slate-400">
+                    <div className="text-xs sm:text-sm text-slate-400 text-center sm:text-left">
                         正在显示 <span className="text-white font-medium">{indexOfFirstItem + 1}</span> - <span className="text-white font-medium">{Math.min(indexOfLastItem, sortedMovies.length)}</span> 条，
-                        共 <span className="text-white font-medium">{sortedMovies.length}</span> 条记录
+                        共 <span className="text-white font-medium">{sortedMovies.length}</span> 条
                     </div>
                     
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                         <select 
                             value={itemsPerPage}
                             onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
-                            className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-1.5 outline-none"
+                            className="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-1.5 outline-none w-full sm:w-auto"
                         >
                             <option value={12}>每页 12 条</option>
                             <option value={24}>每页 24 条</option>
@@ -787,7 +805,7 @@ export default function App() {
                             <option value={96}>每页 96 条</option>
                         </select>
 
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 justify-center">
                             <button
                                 onClick={() => handlePageChange(currentPage - 1)}
                                 disabled={currentPage === 1}
@@ -796,8 +814,8 @@ export default function App() {
                                 <ChevronLeft size={16} />
                             </button>
                             
-                            <span className="px-3 py-1 text-sm text-slate-300 font-medium">
-                                第 {currentPage} / {totalPages} 页
+                            <span className="px-3 py-1 text-sm text-slate-300 font-medium whitespace-nowrap">
+                                {currentPage} / {totalPages}
                             </span>
 
                             <button

@@ -1,3 +1,4 @@
+
 export enum MovieStatus {
   WATCHED = '已看',
   PLANNING = '想看',
@@ -18,6 +19,7 @@ export interface Movie {
   status: MovieStatus;
   review: string;
   posterColor: string; // Used for gradient placeholder if no image
+  posterImage?: string; // Base64 encoded image
   addedAt: number; // Timestamp
   lastUpdated: number; // Timestamp for real-time save feedback
   

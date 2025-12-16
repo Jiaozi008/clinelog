@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, 
@@ -200,128 +201,118 @@ export const Stats: React.FC<StatsProps> = ({ movies }) => {
     };
   }, [filteredMovies, timeFrame, selectedMonth, selectedYear]);
 
-  // A more diverse and vibrant color palette
   const CHART_COLORS = [
-    '#6366f1', // Indigo 500
-    '#10b981', // Emerald 500
-    '#f59e0b', // Amber 500
-    '#ec4899', // Pink 500
-    '#3b82f6', // Blue 500
-    '#8b5cf6', // Violet 500
-    '#f43f5e', // Rose 500
-    '#06b6d4', // Cyan 500
-    '#84cc16', // Lime 500
-    '#d946ef', // Fuchsia 500
-    '#f97316', // Orange 500
-    '#14b8a6', // Teal 500
+    '#6366f1', '#10b981', '#f59e0b', '#ec4899', '#3b82f6', '#8b5cf6', 
+    '#f43f5e', '#06b6d4', '#84cc16', '#d946ef', '#f97316', '#14b8a6',
   ];
 
   if (movies.length === 0) return null;
 
   return (
-    <div className="space-y-6 mb-8">
+    <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8">
       
       {/* 1. Header & Filter Bar */}
-      <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 shadow-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <div className="flex items-center gap-2">
             <BarChart3 className="text-indigo-400" size={20} />
-            <h2 className="text-lg font-bold text-white">数据统计面板</h2>
+            <h2 className="text-base sm:text-lg font-bold text-white">统计面板</h2>
         </div>
         
-        <div className="flex bg-slate-900 p-1 rounded-lg border border-slate-700">
-             <button 
-                onClick={() => setTimeFrame('all')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${timeFrame === 'all' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
-             >
-                全部
-             </button>
-             <button 
-                onClick={() => setTimeFrame('year')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${timeFrame === 'year' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
-             >
-                按年
-             </button>
-             <button 
-                onClick={() => setTimeFrame('month')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${timeFrame === 'month' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
-             >
-                按月
-             </button>
-        </div>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <div className="flex bg-slate-900 p-1 rounded-lg border border-slate-700 shrink-0">
+                <button 
+                    onClick={() => setTimeFrame('all')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${timeFrame === 'all' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                >
+                    全部
+                </button>
+                <button 
+                    onClick={() => setTimeFrame('year')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${timeFrame === 'year' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                >
+                    按年
+                </button>
+                <button 
+                    onClick={() => setTimeFrame('month')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${timeFrame === 'month' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                >
+                    按月
+                </button>
+            </div>
 
-        <div className="flex gap-2">
-            {timeFrame === 'year' && (
-                <select 
-                    value={selectedYear} 
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="bg-slate-700 text-white text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none"
-                >
-                    {years.map(y => <option key={y} value={y}>{y}年</option>)}
-                </select>
-            )}
-            {timeFrame === 'month' && (
-                <select 
-                    value={selectedMonth} 
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="bg-slate-700 text-white text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none"
-                >
-                    {months.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
-            )}
+            <div className="flex gap-2">
+                {timeFrame === 'year' && (
+                    <select 
+                        value={selectedYear} 
+                        onChange={(e) => setSelectedYear(e.target.value)}
+                        className="bg-slate-700 text-white text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                        {years.map(y => <option key={y} value={y}>{y}年</option>)}
+                    </select>
+                )}
+                {timeFrame === 'month' && (
+                    <select 
+                        value={selectedMonth} 
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        className="bg-slate-700 text-white text-sm rounded-lg px-3 py-1.5 border border-slate-600 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    >
+                        {months.map(m => <option key={m} value={m}>{m}</option>)}
+                    </select>
+                )}
+            </div>
         </div>
       </div>
 
       {/* 2. Key Metrics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden group">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+         <div className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent" />
             <div className="text-slate-400 text-xs mb-1 z-10 font-medium">总记录</div>
-            <div className="text-3xl font-bold text-white z-10">{total}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-white z-10">{total}</div>
          </div>
 
-         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
+         <div className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent" />
             <div className="flex gap-4 z-10 w-full justify-center">
                 <div className="text-center">
                     <div className="text-slate-400 text-[10px] mb-1 flex items-center gap-1 justify-center"><Film size={10}/> 电影</div>
-                    <div className="text-xl font-bold text-emerald-400">{movieCount}</div>
+                    <div className="text-lg sm:text-xl font-bold text-emerald-400">{movieCount}</div>
                 </div>
                 <div className="w-px bg-slate-700 h-8 self-center"></div>
                 <div className="text-center">
                     <div className="text-slate-400 text-[10px] mb-1 flex items-center gap-1 justify-center"><Tv size={10}/> 剧集</div>
-                    <div className="text-xl font-bold text-blue-400">{tvCount}</div>
+                    <div className="text-lg sm:text-xl font-bold text-blue-400">{tvCount}</div>
                 </div>
             </div>
          </div>
 
-         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
+         <div className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent" />
             <div className="text-slate-400 text-xs mb-1 z-10 font-medium flex items-center gap-1"><PlayCircle size={12}/> 累计追剧</div>
-            <div className="text-3xl font-bold text-amber-400 z-10">{totalEpisodesWatched} <span className="text-sm text-amber-400/60">集</span></div>
+            <div className="text-2xl sm:text-3xl font-bold text-amber-400 z-10">{totalEpisodesWatched} <span className="text-sm text-amber-400/60">集</span></div>
          </div>
          
-         {/* Total Duration Card - NEW */}
-         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
+         <div className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-transparent" />
             <div className="text-slate-400 text-xs mb-1 z-10 font-medium flex items-center gap-1"><Clock size={12}/> 总观看时长</div>
-            <div className="text-xl font-bold text-cyan-400 z-10 whitespace-nowrap">
-                {totalDurationFormatted.hours > 0 && <span className="text-2xl">{totalDurationFormatted.hours}<span className="text-sm text-cyan-400/60">h</span> </span>}
+            <div className="text-lg sm:text-xl font-bold text-cyan-400 z-10 whitespace-nowrap">
+                {totalDurationFormatted.hours > 0 && <span className="text-xl sm:text-2xl">{totalDurationFormatted.hours}<span className="text-sm text-cyan-400/60">h</span> </span>}
                 {totalDurationFormatted.minutes}<span className="text-sm text-cyan-400/60">m</span>
             </div>
          </div>
 
-         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
+         <div className="col-span-2 sm:col-span-1 bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 flex flex-col items-center justify-center relative overflow-hidden">
              <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/10 to-transparent" />
              <div className="text-slate-400 text-xs mb-1 z-10 font-medium">平均评分</div>
-             <div className="text-3xl font-bold text-yellow-400 z-10">{avgRating} <span className="text-sm">★</span></div>
+             <div className="text-2xl sm:text-3xl font-bold text-yellow-400 z-10">{avgRating} <span className="text-sm">★</span></div>
          </div>
       </div>
 
       {/* 3. Charts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         
-        {/* Chart A: Viewing Trend (Area Chart) */}
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg min-h-[250px] md:col-span-2">
+        {/* Chart A: Viewing Trend */}
+        <div className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 shadow-lg min-h-[250px] md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
                 <Activity size={16} className="text-indigo-400" />
                 <h3 className="text-sm font-medium text-slate-300">
@@ -350,11 +341,11 @@ export const Stats: React.FC<StatsProps> = ({ movies }) => {
             </div>
         </div>
 
-        {/* Chart B: Genre Preference (Bar Chart - Horizontal) */}
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg min-h-[250px]">
+        {/* Chart B: Genre Preference */}
+        <div className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 shadow-lg min-h-[250px]">
              <div className="flex items-center gap-2 mb-4">
                 <Filter size={16} className="text-emerald-400" />
-                <h3 className="text-sm font-medium text-slate-300">类型偏好 Top 8 (条形图)</h3>
+                <h3 className="text-sm font-medium text-slate-300">类型偏好 Top 8</h3>
             </div>
             <div className="h-[200px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -375,11 +366,11 @@ export const Stats: React.FC<StatsProps> = ({ movies }) => {
             </div>
         </div>
 
-        {/* Chart C: Genre Distribution (Radar Chart) */}
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg min-h-[250px]">
+        {/* Chart C: Genre Distribution */}
+        <div className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 shadow-lg min-h-[250px]">
              <div className="flex items-center gap-2 mb-4">
                 <Hexagon size={16} className="text-purple-400" />
-                <h3 className="text-sm font-medium text-slate-300">类型分布 (雷达图)</h3>
+                <h3 className="text-sm font-medium text-slate-300">类型分布</h3>
             </div>
             <div className="h-[200px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -396,8 +387,8 @@ export const Stats: React.FC<StatsProps> = ({ movies }) => {
             </div>
         </div>
 
-        {/* Chart D: Status Distribution (Pie Chart) */}
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg min-h-[250px]">
+        {/* Chart D: Status Distribution */}
+        <div className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 shadow-lg min-h-[250px]">
              <div className="flex items-center gap-2 mb-4">
                 <PieChartIcon size={16} className="text-amber-400" />
                 <h3 className="text-sm font-medium text-slate-300">状态分布</h3>
@@ -433,8 +424,8 @@ export const Stats: React.FC<StatsProps> = ({ movies }) => {
             </div>
         </div>
 
-        {/* Chart E: Rating Distribution (Bar Chart) */}
-        <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg min-h-[250px]">
+        {/* Chart E: Rating Distribution */}
+        <div className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700 shadow-lg min-h-[250px]">
              <div className="flex items-center gap-2 mb-4">
                 <Star size={16} className="text-yellow-400" />
                 <h3 className="text-sm font-medium text-slate-300">评分分布</h3>

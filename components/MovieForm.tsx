@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { Movie, MovieStatus, MediaType } from '../types';
 import { Button } from './ui/Button';
 import { StarRating } from './StarRating';
 import { fetchMovieMetadata, generateAiReview } from '../services/geminiService';
-import { Wand2, Sparkles, X, Tv, Film } from 'lucide-react';
+import { Wand2, Sparkles, X, Tv, Film, Upload, Image as ImageIcon, Trash2, ArrowLeft } from 'lucide-react';
 
 interface MovieFormProps {
   initialData?: Movie | null;
@@ -22,6 +23,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
   const [status, setStatus] = useState<MovieStatus>(MovieStatus.WATCHED);
   const [review, setReview] = useState('');
   const [posterColor, setPosterColor] = useState('#4f46e5');
+  const [posterImage, setPosterImage] = useState('');
   const [watchedDate, setWatchedDate] = useState('');
   
   // New Fields
@@ -32,6 +34,8 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
 
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isReviewLoading, setIsReviewLoading] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize Data
   useEffect(() => {
@@ -45,6 +49,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
       setStatus(initialData.status);
       setReview(initialData.review || '');
       setPosterColor(initialData.posterColor || '#4f46e5');
+      setPosterImage(initialData.posterImage || '');
       
       setMediaType(initialData.mediaType || 'movie');
       setCurrentEpisode(initialData.currentEpisode ? initialData.currentEpisode.toString() : '');
@@ -83,6 +88,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
             setGenre(match.genre);
             setDirector(match.director || '');
             setPosterColor(match.posterColor);
+            setPosterImage(match.posterImage || '');
             setTotalEpisodes(match.totalEpisodes ? match.totalEpisodes.toString() : '');
             setDuration(match.duration ? match.duration.toString() : '');
             
@@ -143,6 +149,52 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
     setIsReviewLoading(false);
   };
 
+  const resizeImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 500;
+          const scaleSize = MAX_WIDTH / img.width;
+          
+          // Only resize if width > MAX_WIDTH
+          if (scaleSize < 1) {
+             canvas.width = MAX_WIDTH;
+             canvas.height = img.height * scaleSize;
+          } else {
+             canvas.width = img.width;
+             canvas.height = img.height;
+          }
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          // Compress quality to 0.7
+          resolve(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.onerror = (err) => reject(err);
+      };
+      reader.onerror = (err) => reject(err);
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const resizedImage = await resizeImage(file);
+        setPosterImage(resizedImage);
+      } catch (error) {
+        console.error("Error processing image:", error);
+        alert("无法处理图片，请重试");
+      }
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const addedAtTimestamp = watchedDate ? new Date(watchedDate).getTime() : Date.now();
@@ -158,6 +210,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
       status,
       review,
       posterColor,
+      posterImage,
       mediaType,
       currentEpisode: mediaType === 'tv' ? (parseInt(currentEpisode) || 0) : undefined,
       totalEpisodes: mediaType === 'tv' ? (parseInt(totalEpisodes) || 0) : undefined,
@@ -167,31 +220,41 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
-        <div className="flex justify-between items-center p-6 border-b border-slate-800">
-          <h2 className="text-xl font-semibold text-white">
-            {initialData ? '编辑记录' : '添加新记录'}
-          </h2>
-          <button onClick={onCancel} className="text-slate-400 hover:text-white transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-slate-900 sm:border border-slate-700 w-full h-full sm:h-auto sm:max-h-[90vh] sm:rounded-2xl sm:max-w-lg shadow-2xl flex flex-col transition-all">
+        {/* Header */}
+        <div className="flex justify-between items-center p-4 sm:p-6 border-b border-slate-800 shrink-0">
+          <div className="flex items-center gap-2">
+            <button onClick={onCancel} className="sm:hidden text-slate-400 hover:text-white mr-2">
+                <ArrowLeft size={24} />
+            </button>
+            <h2 className="text-xl font-semibold text-white">
+                {initialData ? '编辑记录' : '添加新记录'}
+            </h2>
+          </div>
+          <button onClick={onCancel} className="hidden sm:block text-slate-400 hover:text-white transition-colors">
             <X size={24} />
           </button>
+          <Button onClick={handleSubmit} type="button" className="sm:hidden" size="sm">
+            保存
+          </Button>
         </div>
 
-        <div className="overflow-y-auto p-6 space-y-5 custom-scrollbar">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 custom-scrollbar bg-slate-900/50">
           {/* Media Type Toggle */}
           <div className="flex bg-slate-800 p-1 rounded-lg mb-4">
             <button
                 type="button"
                 onClick={() => setMediaType('movie')}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-all ${mediaType === 'movie' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`flex-1 py-3 sm:py-2 px-4 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-all ${mediaType === 'movie' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
             >
                 <Film size={16} /> 电影
             </button>
             <button
                 type="button"
                 onClick={() => setMediaType('tv')}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-all ${mediaType === 'tv' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
+                className={`flex-1 py-3 sm:py-2 px-4 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-all ${mediaType === 'tv' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'}`}
             >
                 <Tv size={16} /> 电视剧
             </button>
@@ -205,8 +268,8 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
-                placeholder={mediaType === 'movie' ? "例如：盗梦空间" : "例如：三体 (输入同名剧集可自动填充)"}
+                className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 sm:py-2 text-base sm:text-sm text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                placeholder={mediaType === 'movie' ? "例如：盗梦空间" : "例如：三体"}
                 required
               />
               <Button 
@@ -215,10 +278,65 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
                 onClick={handleAiFill} 
                 disabled={!title || isAiLoading}
                 title="使用 AI 自动填充"
+                className="px-3"
               >
-                {isAiLoading ? <Wand2 className="animate-spin" size={18} /> : <Wand2 size={18} />}
+                {isAiLoading ? <Wand2 className="animate-spin" size={20} /> : <Wand2 size={20} />}
               </Button>
             </div>
+          </div>
+
+          {/* Poster Image Upload */}
+          <div className="space-y-2">
+             <label className="text-sm font-medium text-slate-300">海报图片</label>
+             <div className="flex items-center gap-4">
+                 <div 
+                    className="w-20 h-28 sm:w-16 sm:h-24 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center overflow-hidden shrink-0 relative group cursor-pointer"
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{ background: posterImage ? 'transparent' : posterColor }}
+                 >
+                     {posterImage ? (
+                         <img src={posterImage} alt="Cover" className="w-full h-full object-cover" />
+                     ) : (
+                         <ImageIcon className="text-white/50" size={24} />
+                     )}
+                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                         <Upload size={16} className="text-white" />
+                     </div>
+                 </div>
+                 
+                 <div className="flex-1">
+                     <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleImageUpload} 
+                        accept="image/*" 
+                        className="hidden" 
+                     />
+                     <div className="flex gap-2 flex-wrap">
+                         <Button 
+                            type="button" 
+                            variant="secondary" 
+                            size="sm"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="py-2"
+                         >
+                             上传封面
+                         </Button>
+                         {posterImage && (
+                             <Button 
+                                type="button" 
+                                variant="danger" 
+                                size="sm"
+                                onClick={() => setPosterImage('')}
+                                className="py-2"
+                             >
+                                 <Trash2 size={16} />
+                             </Button>
+                         )}
+                     </div>
+                     <p className="text-xs text-slate-500 mt-2">支持 JPG, PNG. 图片将自动压缩。</p>
+                 </div>
+             </div>
           </div>
 
           {/* TV Specific Fields: Episodes */}
@@ -231,7 +349,7 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
                           min="0"
                           value={currentEpisode}
                           onChange={(e) => setCurrentEpisode(e.target.value)}
-                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 sm:py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none text-base sm:text-sm"
                           placeholder="0"
                       />
                   </div>
@@ -242,46 +360,46 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
                           min="0"
                           value={totalEpisodes}
                           onChange={(e) => setTotalEpisodes(e.target.value)}
-                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 sm:py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none text-base sm:text-sm"
                           placeholder="例如: 24"
                       />
                   </div>
               </div>
           )}
 
-          {/* Date and Release Year */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Date and Release Year - Stack on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
              <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">观影日期</label>
                 <input
                     type="date"
                     value={watchedDate}
                     onChange={(e) => setWatchedDate(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none placeholder-slate-500"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 sm:py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none placeholder-slate-500 text-base sm:text-sm"
                     required
                 />
              </div>
              <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">上映年份</label>
                 <input
-                    type="text"
+                    type="number"
                     value={year}
                     onChange={(e) => setYear(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 sm:py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none text-base sm:text-sm"
                     placeholder="2024"
                 />
              </div>
           </div>
 
-          {/* Country and Genre */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Country and Genre - Stack on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
              <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">国家 / 地区</label>
                 <input
                     type="text"
                     value={country}
                     onChange={(e) => setCountry(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 sm:py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none text-base sm:text-sm"
                     placeholder="例如: 美国"
                 />
              </div>
@@ -291,21 +409,21 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
                     type="text"
                     value={genre}
                     onChange={(e) => setGenre(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 sm:py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none text-base sm:text-sm"
                     placeholder="科幻"
                 />
              </div>
           </div>
 
-          {/* Director & Duration */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2 space-y-2">
+          {/* Director & Duration - Stack on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="sm:col-span-2 space-y-2">
                 <label className="text-sm font-medium text-slate-300">导演 / 主创</label>
                 <input
                     type="text"
                     value={director}
                     onChange={(e) => setDirector(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 sm:py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none text-base sm:text-sm"
                     placeholder="Christopher Nolan"
                 />
             </div>
@@ -318,55 +436,58 @@ export const MovieForm: React.FC<MovieFormProps> = ({ initialData, existingMovie
                     min="0"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 sm:py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none text-base sm:text-sm"
                     placeholder="120"
                 />
             </div>
           </div>
 
-          {/* Status & Rating */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Status & Rating - Stack on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">状态</label>
                 <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as MovieStatus)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none appearance-none"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 sm:py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none appearance-none text-base sm:text-sm"
                 >
                     {Object.values(MovieStatus).map(s => (
                         <option key={s} value={s}>{s}</option>
                     ))}
                 </select>
             </div>
-            <div className="space-y-2 flex flex-col justify-center">
-                <label className="text-sm font-medium text-slate-300 mb-1">评分</label>
-                <StarRating rating={rating} onRatingChange={setRating} size={24} />
+            <div className="space-y-2 flex flex-col justify-center py-2 sm:py-0">
+                <label className="text-sm font-medium text-slate-300 mb-2 sm:mb-1">评分</label>
+                <div className="flex justify-center sm:justify-start">
+                    <StarRating rating={rating} onRatingChange={setRating} size={32} />
+                </div>
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 pb-20 sm:pb-0">
             <div className="flex justify-between items-center">
                 <label className="text-sm font-medium text-slate-300">评价 / 笔记</label>
                 <button 
                   type="button" 
                   onClick={handleAiReview}
-                  className="text-indigo-400 text-xs flex items-center gap-1 hover:text-indigo-300 transition-colors"
+                  className="text-indigo-400 text-xs flex items-center gap-1 hover:text-indigo-300 transition-colors px-2 py-1 rounded hover:bg-slate-800"
                   disabled={isReviewLoading || !title}
                 >
-                    {isReviewLoading ? <Sparkles size={12} className="animate-pulse" /> : <Sparkles size={12} />}
+                    {isReviewLoading ? <Sparkles size={14} className="animate-pulse" /> : <Sparkles size={14} />}
                     AI 帮我写
                 </button>
             </div>
             <textarea
                 value={review}
                 onChange={(e) => setReview(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white focus:ring-2 focus:ring-indigo-500 outline-none h-24 resize-none"
+                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 outline-none h-32 resize-none text-base sm:text-sm"
                 placeholder="你觉得这部作品怎么样？"
             />
           </div>
         </div>
 
-        <div className="p-6 border-t border-slate-800 flex justify-end gap-3 bg-slate-900/50 rounded-b-2xl">
+        {/* Footer (Hidden on mobile as we use header button or fixed bottom) */}
+        <div className="hidden sm:flex p-6 border-t border-slate-800 justify-end gap-3 bg-slate-900/50 rounded-b-2xl shrink-0">
             <Button variant="ghost" onClick={onCancel} type="button">取消</Button>
             <Button onClick={handleSubmit} type="submit">
                 {initialData ? '保存修改' : '添加记录'}

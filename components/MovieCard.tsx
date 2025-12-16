@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Movie, MovieStatus } from '../types';
 import { StarRating } from './StarRating';
@@ -89,11 +90,22 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       {/* Visual Header */}
       <div 
         className="h-32 w-full relative overflow-hidden"
-        style={{ 
+        style={movie.posterImage ? {} : { 
             background: `linear-gradient(135deg, ${movie.posterColor || '#334155'} 0%, #0f172a 100%)` 
         }}
       >
-         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent transition-opacity duration-500" />
+         {movie.posterImage ? (
+             <>
+                <img 
+                    src={movie.posterImage} 
+                    alt={movie.title} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent transition-opacity duration-500" />
+             </>
+         ) : (
+             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/20 to-transparent transition-opacity duration-500" />
+         )}
          
          {/* Type Badge - Differentiated by Color */}
          <div className="absolute top-3 left-3 z-10 transform transition-transform duration-300 group-hover:scale-105">
@@ -111,8 +123,8 @@ export const MovieCard: React.FC<MovieCardProps> = ({
          )}
 
          <div className="absolute bottom-3 left-4 right-4 z-10 transition-transform duration-300 group-hover:-translate-y-1">
-             <h3 className="text-xl font-bold text-white leading-tight truncate shadow-sm group-hover:text-indigo-300 transition-colors duration-300">{movie.title}</h3>
-             <div className="flex items-center gap-2 text-xs text-slate-200 mt-1 font-medium text-shadow opacity-90 group-hover:opacity-100">
+             <h3 className="text-xl font-bold text-white leading-tight truncate shadow-sm group-hover:text-indigo-300 transition-colors duration-300 drop-shadow-md">{movie.title}</h3>
+             <div className="flex items-center gap-2 text-xs text-slate-200 mt-1 font-medium text-shadow opacity-90 group-hover:opacity-100 drop-shadow-sm">
                  {movie.year && <span>{movie.year}</span>}
                  {movie.year && (movie.country || movie.genre) && <span>•</span>}
                  {movie.country && <span>{movie.country}</span>}
