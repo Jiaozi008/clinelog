@@ -22,14 +22,20 @@ export interface Movie {
   posterImage?: string; // Base64 encoded image
   addedAt: number; // Timestamp
   lastUpdated: number; // Timestamp for real-time save feedback
-  
+
   // New fields for TV Series support
   mediaType: MediaType;
   currentEpisode?: number;
   totalEpisodes?: number;
-  
+
   // New field for Duration
   duration?: number; // Minutes (Total for movie, per episode for TV)
+
+  // Playback Speed fields
+  playbackSpeed?: number; // 1.0, 1.5, 1.75, 2.0, or custom (0.5-3.0)
+  actualWatchTime?: number; // Calculated: duration / speed (or episodes * duration / speed for TV)
+  platform?: string; // New field for streaming platform
+  cast?: string; // Main cast members, comma-separated
 }
 
 export interface MovieStats {
@@ -50,4 +56,11 @@ export interface GeminiMovieResponse {
   mediaType: MediaType;
   totalEpisodes?: number;
   duration?: number; // Minutes
+}
+
+export interface SyncConfig {
+  githubToken: string;
+  gistId: string;
+  lastSyncTime: number;
+  autoSync: boolean;
 }
